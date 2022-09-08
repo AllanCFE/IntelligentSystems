@@ -1,0 +1,15 @@
+Geral
+> .h com labirinto
+> Classe árvore
+> Classe labirinto
+> Classe Agente com metodos
+    > Retornar caminhos livres
+    > Marcar casas que já passamos
+    > Adicionar nós na árvore
+    > Retornar que estamos na casa objetivo
+
+Busca em largura
+> Verificar quantos nós existem no nível atual/se passamos por todos (ou loop que garanta isso)
+
+Busca em profundidade
+> Método para "voltar" na árvore verificando se há filho sem passar
