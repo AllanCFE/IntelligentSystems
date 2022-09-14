@@ -1,5 +1,6 @@
 #Algoritmo de Resolução de Labirinto
 #
+#allan
 #EMB5617: Sistemas Inteligentes
 #from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
