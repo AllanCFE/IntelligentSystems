@@ -24,39 +24,61 @@ class Labirinto(object):
         print ("\n\n")
 
 class Operador(object):
-    def bfs(Labirinto, self):
+    
+    def solver(tipo, self):
         print ("Sistema de Execução BFS")
-        s = []
-        hold = 0
-        while hold != 3:
-            s.append = self.search(0, 0, self)
-            print (s)
-     
-    def dfs(Labirinto, self):
-        print ("Sistema de Execução DFS")
-        s = []
-        hold = 0
         #assumindo q o labirinto comece no 0,0
+        s = [[0,0]]
+        hold = 0
+        
         while hold != 3:
+            posicao_atual = s.pop(0)
             
-            s.insert = self.search(0, 0, self)
+            if a[posicao_atual[0]][posicao_atual[1]] == 3 :
+                hold = 3
+            
+            resultados_busca = self.search(posicao_atual[0], posicao_atual[1], self)
+            
+            if len(resultados_busca) <= 0 :
+                continue
+            
+            for res_busca in resultados_busca:
+                if tipo == "bfs":
+                    s.append([res_busca[0], res_busca[1]])
+                else:
+                    s.insert(0, [res_busca[0], res_busca[1]])
+            
+            
             print (s)
             
     def walk(linha, coluna, self):
            print("Anda")
         
     def search(linha, coluna, self):
-        print ("Posição encontrada na Linha ", linha+1, " e Coluna ", coluna+1, "\n")
+        
+        
+        posicoes = []
+        
+        print ("\n", "Posição encontrada na Linha ", linha+1, " e Coluna ", coluna+1)
         print (a[linha][coluna])
         
-        cima = self.look_up(linha, coluna)
-        esquerda = self.look_left(linha, coluna)
-        baixo = self.look_down(linha, coluna)
-        direita = self.look_right(linha, coluna)
+        if self.look_up(linha, coluna) != 1:
+            posicoes.append([linha-1,coluna])
+        if self.look_left(linha, coluna) != 1:
+            posicoes.append([linha,coluna-1])
+        if self.look_down(linha, coluna) != 1:
+            posicoes.append([linha+1,coluna])
+        if self.look_right(linha, coluna) != 1:
+            posicoes.append([linha,coluna+1])
+        
+        if a[linha][coluna] != 3 :
+            a[linha][coluna] = 4
+        
+        return posicoes
                     
     def look_up(linha, coluna):
         #procura em cima
-        if linha-1 < 0:
+        if linha-1 < 0 or a[linha-1][coluna] == 4:
             print ("Atingiu a beirada de cima")
             return 1
         
@@ -67,7 +89,7 @@ class Operador(object):
                    
     def look_left(linha, coluna):
         #procura na esquerda
-        if coluna-1 < 0:
+        if coluna-1 < 0 or a[linha][coluna-1] == 4:
             print ("Atingiu a beirada da esquerda")
             return 1
             
@@ -78,7 +100,7 @@ class Operador(object):
         
     def look_right(linha, coluna):
         #procura na direita
-        if coluna+1 > 9:
+        if coluna+1 > 9 or a[linha][coluna+1] == 4:
             print ("Atingiu a beirada da direita")
             return 1
             
@@ -89,9 +111,9 @@ class Operador(object):
         
     def look_down(linha, coluna):
         #procura embaixo
-        if linha+1 > 9:
+        if linha+1 > 9 or a[linha+1][coluna] == 4:
             print ("Atingiu a beirada de baixo")
-            return
+            return 1
             
         if a[linha+1][coluna] == 0:
             print ("Existe caminho embaixo")
@@ -103,7 +125,9 @@ maze = Labirinto
 maze.setUp_Map_1()
 
 op = Operador
-op.search(0, 0, op)
+op.solver("dfs", op)
+
+print(a)
 
 #testes
 data = []
