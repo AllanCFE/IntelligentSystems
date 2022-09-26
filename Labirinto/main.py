@@ -1,16 +1,19 @@
-#Algoritmo de Resolução de Labirinto
+#Algoritmo de Resolução de Labirinto1
 #
 #allan
 #EMB5617: Sistemas Inteligentes
 #from PyQt5 import QtCore, QtGui, QtWidgets
 import numpy as np
+import matplotlib.pyplot as plt
 
-a = np.zeros((10,10), dtype=np.int64)
-
+a = np.zeros((10,10),dtype=np.int64)
 
 class Labirinto(object):
     def setUp_Map_1():
         print ("Labirinto criado")
+        
+        """
+        #Labirinto 1
         a[0:5, 1:5] = 1
         a[1:7, 6:9] = 1
         a[6:7, 0:5] = 1
@@ -19,8 +22,44 @@ class Labirinto(object):
         a[3:5, 9:10] = 1
         a[0:1, 0:1] = 2
         a[7:8, 0:1] = 3
-        print (a)
-        print ("\n\n")
+        """
+        
+        
+        #Labirinto 2
+        a[1:5, 0:5] = 1
+        a[1:4, 1:2] = 0
+        a[3:4, 3:5] = 0
+        a[2:3, 3:4] = 0
+        a[1:7, 6:10] = 1
+        a[6:8, 0:5] = 1
+        a[2:3, 6:9] = 0
+        a[3:5, 8:9] = 0
+        a[4:5, 7:10] = 0
+        a[8:9, 1:10] = 1
+        a[7:8, 2:5] = 0
+        a[8:9, 4:5] = 0
+        a[9:10, 9:10] = 3
+        
+        
+        """
+        #Labirinto 3
+        a[1:5, 0:6] = 1
+        a[0:5, 0:1] = 0
+        a[2:5, 2:3] = 0
+        a[2:3, 3:5] = 0
+        a[3:4, 4:5] = 0
+        a[6:7, 0:9] = 1
+        a[7:9, 6:7] = 1
+        a[8:9, 1:5] = 1
+        a[7:8, 3:4] = 1
+        a[7:8, 2:3] = 3
+        a[8:9, 8:10] = 1
+        a[3:5, 7:10] = 1
+        """
+        
+        print(a)
+
+    
 
 class Operador(object):
     
@@ -125,9 +164,12 @@ maze = Labirinto
 maze.setUp_Map_1()
 
 op = Operador
-op.solver("dfs", op)
+op.solver("bfs", op)
 
 print(a)
+plt.imshow(a)
+plt.show()
+
 
 #testes
 data = []
