@@ -1,40 +1,70 @@
-import time
-import asyncio
-from spade.agent import Agent
-from spade.behaviour import CyclicBehaviour
-
-class DummyAgent(Agent):
-    class MyBehav(CyclicBehaviour):
-        async def on_start(self):
-            print("Starting behaviour . . .")
-            self.counter = 0
-
-        async def run(self):
-            print("Counter: {}".format(self.counter))
-            self.counter += 1
-            await asyncio.sleep(1)
-
-    async def setup(self):
-        print("Agent starting . . .")
-        b = self.MyBehav()
-        self.add_behaviour(b)
-        
-        
 PASSWORD = ''
 try:
    from secret import *
 except ImportError:
    pass
 
-if __name__ == "__main__":
-    dummy = DummyAgent("hydrobr@jix.im", PASSWORD)
-    future = dummy.start()
-    future.result()
+import time
+from spade.agent import Agent
+from spade.behaviour import OneShotBehaviour
+from spade.message import Message
+from spade.template import Template
 
-    print("Wait until user interrupts with ctrl+C")
-    try:
-        while True:
+
+class SenderAgent(Agent):
+    class InformBehav(OneShotBehaviour):
+        async def run(self):
+            print("InformBehav running")
+            msg = Message(to="laykere@jix.im")     # Instantiate the message
+            msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
+            msg.body = "Hello World"                    # Set the message content
+
+            await self.send(msg)
+            print("Message sent!")
+
+            # stop agent from behaviour
+            await self.agent.stop()
+
+    async def setup(self):
+        print("SenderAgent started")
+        b = self.InformBehav()
+        self.add_behaviour(b)
+
+class ReceiverAgent(Agent):
+    class RecvBehav(OneShotBehaviour):
+        async def run(self):
+            print("RecvBehav running")
+
+            msg = await self.receive(timeout=10) # wait for a message for 10 seconds
+            if msg:
+                print("Message received with content: {}".format(msg.body))
+            else:
+                print("Did not received any message after 10 seconds")
+
+            # stop agent from behaviour
+            await self.agent.stop()
+
+    async def setup(self):
+        print("ReceiverAgent started")
+        b = self.RecvBehav()
+        template = Template()
+        template.set_metadata("performative", "inform")
+        self.add_behaviour(b, template)
+
+
+
+if __name__ == "__main__":
+    receiveragent = ReceiverAgent("laykere@jix.im", PASSWORD)
+    future = receiveragent.start()
+    future.result() # wait for receiver agent to be prepared.
+    senderagent = SenderAgent("hydrobr@jix.im", PASSWORD)
+    senderagent.start()
+
+    while receiveragent.is_alive():
+        try:
             time.sleep(1)
-    except KeyboardInterrupt:
-        print("Stopping...")
-    dummy.stop()
+        except KeyboardInterrupt:
+            senderagent.stop()
+            receiveragent.stop()
+            break
+    print("Agents finished")
