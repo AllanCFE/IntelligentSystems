@@ -5,10 +5,12 @@ except ImportError:
    pass
 
 import time
+from xml.dom.minidom import TypeInfo
 from spade.agent import Agent
 from spade.behaviour import OneShotBehaviour
 from spade.message import Message
 from spade.template import Template
+import random
 
 
 class SenderAgent(Agent):
@@ -50,6 +52,9 @@ class ReceiverAgent(Agent):
         template = Template()
         template.set_metadata("performative", "inform")
         self.add_behaviour(b, template)
+        
+        self.typeFunction = random.randint(1,4)
+        print(self.typeFunction)
 
 
 
