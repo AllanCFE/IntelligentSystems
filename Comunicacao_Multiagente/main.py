@@ -46,6 +46,12 @@ class ReceiverAgent(Agent):
             # stop agent from behaviour
             await self.agent.stop()
 
+    def generateFunction (self):
+        self.indexes = []
+        
+        for x in range(self.typeFunction):
+            self.indexes.append(random.randint(-1000,1001))
+
     async def setup(self):
         print("ReceiverAgent started")
         b = self.RecvBehav()
@@ -53,8 +59,11 @@ class ReceiverAgent(Agent):
         template.set_metadata("performative", "inform")
         self.add_behaviour(b, template)
         
-        self.typeFunction = random.randint(1,4)
-        print(self.typeFunction)
+        self.typeFunction = random.randint(1,3)
+        #print(self.typeFunction)
+        
+        self.generateFunction()
+        #print(self.indexes)
 
 
 
