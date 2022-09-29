@@ -7,7 +7,7 @@ except ImportError:
 import time
 from xml.dom.minidom import TypeInfo
 from spade.agent import Agent
-from spade.behaviour import OneShotBehaviour
+from spade.behaviour import CyclicBehaviour, OneShotBehaviour
 from spade.message import Message
 from spade.template import Template
 import random
@@ -18,7 +18,7 @@ class SenderAgent(Agent):
         async def run(self):
             print("InformBehav running")
             msg = Message(to="laykere@jix.im")     # Instantiate the message
-            msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
+            msg.set_metadata("performative", "request")  # Set the "inform" FIPA performative
             msg.body = "Hello World"                    # Set the message content
 
             await self.send(msg)
@@ -33,18 +33,22 @@ class SenderAgent(Agent):
         self.add_behaviour(b)
 
 class ReceiverAgent(Agent):
-    class RecvBehav(OneShotBehaviour):
+    class RecvBehav(CyclicBehaviour):
         async def run(self):
             print("RecvBehav running")
 
-            msg = await self.receive(timeout=10) # wait for a message for 10 seconds
+            msg = await self.receive(timeout=5) # wait for a message for 10 seconds
             if msg:
-                print("Message received with content: {}".format(msg.body))
+                #print("Message received with content: {}".format(msg.body))
+                if msg.body == "Hello World":
+                    print('a')
+                else:
+                    print('b')
             else:
                 print("Did not received any message after 10 seconds")
 
             # stop agent from behaviour
-            await self.agent.stop()
+            #await self.agent.stop()
 
     def generateFunction (self):
         self.indexes = []
@@ -56,7 +60,7 @@ class ReceiverAgent(Agent):
         print("ReceiverAgent started")
         b = self.RecvBehav()
         template = Template()
-        template.set_metadata("performative", "inform")
+        template.set_metadata("performative", "request")
         self.add_behaviour(b, template)
         
         self.typeFunction = random.randint(1,3)
