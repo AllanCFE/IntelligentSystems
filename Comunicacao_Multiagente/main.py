@@ -19,7 +19,7 @@ class SenderAgent(Agent):
             print("InformBehav running")
             msg = Message(to="laykere@jix.im")     # Instantiate the message
             msg.set_metadata("performative", "request")  # Set the "inform" FIPA performative
-            msg.body = "Hello World"                    # Set the message content
+            msg.body = "Function type"                    # Set the message content
 
             await self.send(msg)
             print("Message sent!")
@@ -33,14 +33,14 @@ class SenderAgent(Agent):
         self.add_behaviour(b)
 
 class ReceiverAgent(Agent):
-    class RecvBehav(CyclicBehaviour):
+    class ResponseType(CyclicBehaviour):
         async def run(self):
-            print("RecvBehav running")
+            print("ResponseType running")
 
             msg = await self.receive(timeout=5) # wait for a message for 10 seconds
             if msg:
                 #print("Message received with content: {}".format(msg.body))
-                if msg.body == "Hello World":
+                if msg.body == "Function type":
                     print('a')
                 else:
                     print('b')
@@ -58,7 +58,7 @@ class ReceiverAgent(Agent):
 
     async def setup(self):
         print("ReceiverAgent started")
-        b = self.RecvBehav()
+        b = self.ResponseType()
         template = Template()
         template.set_metadata("performative", "request")
         self.add_behaviour(b, template)
