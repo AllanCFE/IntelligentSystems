@@ -41,7 +41,11 @@ class ReceiverAgent(Agent):
             if msg:
                 #print("Message received with content: {}".format(msg.body))
                 if msg.body == "Function type":
-                    print('a')
+                    r_msg = Message(to= format(msg.sender))     # Instantiate the message
+                    r_msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
+                    r_msg.body = "Type: " & self.typeFunction                    # Set the message content
+
+                    await self.send(r_msg)
                 else:
                     print('b')
             else:
@@ -49,18 +53,6 @@ class ReceiverAgent(Agent):
 
             # stop agent from behaviour
             #await self.agent.stop()
-
-    class ResponseType(OneShotBehaviour):
-        async def run (senderUser, self):
-            msg = Message(to=senderUser)     # Instantiate the message
-            msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
-            msg.body = "Type: " & self.typeFunction                    # Set the message content
-
-            await self.send(msg)
-            print("Type message sent!")
-
-            # stop agent from behaviour
-            await self.agent.stop()
     
     def generateFunction (self):
         self.indexes = []
