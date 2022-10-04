@@ -33,9 +33,9 @@ class SenderAgent(Agent):
         self.add_behaviour(b)
 
 class ReceiverAgent(Agent):
-    class ResponseType(CyclicBehaviour):
+    class TypeRequest(CyclicBehaviour):
         async def run(self):
-            print("ResponseType running")
+            print("TypeRequest running")
 
             msg = await self.receive(timeout=5) # wait for a message for 10 seconds
             if msg:
@@ -50,6 +50,18 @@ class ReceiverAgent(Agent):
             # stop agent from behaviour
             #await self.agent.stop()
 
+    class ResponseType(OneShotBehaviour):
+        async def run (senderUser, self):
+            msg = Message(to=senderUser)     # Instantiate the message
+            msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
+            msg.body = "Type: " & self.typeFunction                    # Set the message content
+
+            await self.send(msg)
+            print("Type message sent!")
+
+            # stop agent from behaviour
+            await self.agent.stop()
+    
     def generateFunction (self):
         self.indexes = []
         
@@ -58,7 +70,7 @@ class ReceiverAgent(Agent):
 
     async def setup(self):
         print("ReceiverAgent started")
-        b = self.ResponseType()
+        b = self.TypeRequest()
         template = Template()
         template.set_metadata("performative", "request")
         self.add_behaviour(b, template)
