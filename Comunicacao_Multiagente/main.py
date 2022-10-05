@@ -35,6 +35,7 @@ class SolverAgent(Agent):
 class GeneratorAgent(Agent):
     
     typeFunction = random.randint(1,3)
+    indexes = []
     class TypeRequest(CyclicBehaviour):
         async def run(self):
             print("TypeRequest running")
@@ -56,9 +57,7 @@ class GeneratorAgent(Agent):
             # stop agent from behaviour
             #await self.agent.stop()
     
-    def generateFunction (self):
-        self.indexes = []
-        
+    def generateFunction (self):        
         for x in range(self.typeFunction):
             self.indexes.append(random.randint(-1000,1001))
 
@@ -72,7 +71,6 @@ class GeneratorAgent(Agent):
         #print(self.typeFunction)
         
         self.generateFunction()
-        #print(self.indexes)
 
 
 
