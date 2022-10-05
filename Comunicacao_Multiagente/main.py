@@ -33,6 +33,8 @@ class SenderAgent(Agent):
         self.add_behaviour(b)
 
 class ReceiverAgent(Agent):
+    
+    typeFunction = random.randint(1,3)
     class TypeRequest(CyclicBehaviour):
         async def run(self):
             print("TypeRequest running")
@@ -43,7 +45,7 @@ class ReceiverAgent(Agent):
                 if msg.body == "Function type":
                     r_msg = Message(to= format(msg.sender))     # Instantiate the message
                     r_msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
-                    r_msg.body = "Type: " & self.typeFunction                    # Set the message content
+                    r_msg.body = format(ReceiverAgent.typeFunction)+"grau" # Set the message content
 
                     await self.send(r_msg)
                 else:
@@ -67,7 +69,6 @@ class ReceiverAgent(Agent):
         template.set_metadata("performative", "request")
         self.add_behaviour(b, template)
         
-        self.typeFunction = random.randint(1,3)
         #print(self.typeFunction)
         
         self.generateFunction()
