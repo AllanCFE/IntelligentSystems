@@ -13,7 +13,7 @@ from spade.template import Template
 import random
 
 
-class SenderAgent(Agent):
+class SolverAgent(Agent):
     class InformBehav(OneShotBehaviour):
         async def run(self):
             print("InformBehav running")
@@ -28,11 +28,11 @@ class SenderAgent(Agent):
             await self.agent.stop()
 
     async def setup(self):
-        print("SenderAgent started")
+        print("SolverAgent started")
         b = self.InformBehav()
         self.add_behaviour(b)
 
-class ReceiverAgent(Agent):
+class GeneratorAgent(Agent):
     
     typeFunction = random.randint(1,3)
     class TypeRequest(CyclicBehaviour):
@@ -45,7 +45,7 @@ class ReceiverAgent(Agent):
                 if msg.body == "Function type":
                     r_msg = Message(to= format(msg.sender))     # Instantiate the message
                     r_msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
-                    r_msg.body = format(ReceiverAgent.typeFunction)+"grau" # Set the message content
+                    r_msg.body = format(GeneratorAgent.typeFunction)+"grau" # Set the message content
 
                     await self.send(r_msg)
                 else:
@@ -63,7 +63,7 @@ class ReceiverAgent(Agent):
             self.indexes.append(random.randint(-1000,1001))
 
     async def setup(self):
-        print("ReceiverAgent started")
+        print("GeneratorAgent started")
         b = self.TypeRequest()
         template = Template()
         template.set_metadata("performative", "request")
@@ -77,17 +77,17 @@ class ReceiverAgent(Agent):
 
 
 if __name__ == "__main__":
-    receiveragent = ReceiverAgent("laykere@jix.im", PASSWORD)
-    future = receiveragent.start()
+    generatoragent = GeneratorAgent("laykere@jix.im", PASSWORD)
+    future = generatoragent.start()
     future.result() # wait for receiver agent to be prepared.
-    senderagent = SenderAgent("hydrobr@jix.im", PASSWORD)
-    senderagent.start()
+    solverAgent = SolverAgent("hydrobr@jix.im", PASSWORD)
+    solverAgent.start()
 
-    while receiveragent.is_alive():
+    while generatoragent.is_alive():
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            senderagent.stop()
-            receiveragent.stop()
+            solverAgent.stop()
+            generatoragent.stop()
             break
     print("Agents finished")
