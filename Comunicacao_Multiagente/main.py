@@ -6,6 +6,7 @@ except ImportError:
 
 import time
 from xml.dom.minidom import TypeInfo
+from kiwisolver import Solver
 from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, OneShotBehaviour
 from spade.message import Message
@@ -14,6 +15,9 @@ import random
 
 
 class SolverAgent(Agent):
+    grauFuncao = 0
+    xEnviado = 0
+    xTestados = [0]
     class InformBehav(OneShotBehaviour):
         async def run(self):
             print("InformBehav running")
@@ -24,14 +28,53 @@ class SolverAgent(Agent):
             await self.send(msg)
             print("Message sent!")
 
+    class FirstGuess(OneShotBehaviour):
+        async def run(self):
+            msg = Message(to="laykere@jix.im")
+            msg.set_metadata("performative", "subscribe")
+            msg.body = "0"
+
+            await self.send(msg)
+            print("GUESS sent!")
+
     class AwaitCalculation (CyclicBehaviour):
         async def run(self):
             msg = await self.receive(timeout=5)
             
             if msg:
-                print("Retornado: {}".format(msg.body))
+                if 'u' == msg.body[len(msg.body)-1]:
+                    SolverAgent.grauFuncao = msg.body[0]
+                    print("Grau recebido: {}".format(SolverAgent.grauFuncao))
+                else:
+                    if int(format(msg.body)) == 0:
+                        print("Uma das raízes é {}!".format(SolverAgent.xEnviado))
+                        await SolverAgent.stop()
+                    
+                    print("Y = {}".format(msg.body))
+                    
+                    novoX = SolverAgent.resolvedor()
+                    SolverAgent.xEnviado = novoX
+                    
+                    msg = Message(to="laykere@jix.im")
+                    msg.set_metadata("performative", "subscribe")
+                    msg.body = str(novoX)
+
+                    await self.send(msg)
+                    print("GUESS sent: {}!".format(msg.body))
+                    
             else:
                 print("Not received response after 5s")
+
+    def resolvedor():
+        SolverAgent.xTestados.append(SolverAgent.xEnviado)
+        
+        novoX = 0
+        
+        while novoX in SolverAgent.xTestados:
+            novoX = random.randint(-10,11)
+            
+        return novoX
+        
 
     async def setup(self):
         print("SolverAgent started")
@@ -42,6 +85,9 @@ class SolverAgent(Agent):
         
         requestTypeBehaviour = self.InformBehav()
         self.add_behaviour(requestTypeBehaviour)
+        
+        shootFirstGuess = self.FirstGuess()
+        self.add_behaviour(shootFirstGuess)
 
 class GeneratorAgent(Agent):
     
@@ -49,34 +95,52 @@ class GeneratorAgent(Agent):
     indexes = []
     class TypeRequest(CyclicBehaviour):
         async def run(self):
-            print("TypeRequest running")
-
-            msg = await self.receive(timeout=5) # wait for a message for 10 seconds
+            msg = await self.receive(timeout=10) # wait for a message for 10 seconds
             if msg:
-                #print("Message received with content: {}".format(msg.body))
-                if msg.body == "Function type":
-                    r_msg = Message(to= format(msg.sender))     # Instantiate the message
-                    r_msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
-                    r_msg.body = format(GeneratorAgent.typeFunction)+"grau" # Set the message content
-
-                    await self.send(r_msg)
-                else:
-                    print('b')
+                r_msg = Message(to= format(msg.sender))     # Instantiate the message
+                r_msg.set_metadata("performative", "inform")  # Set the "inform" FIPA performative
+                r_msg.body = format(GeneratorAgent.typeFunction)+"grau" # Set the message content
+                await self.send(r_msg)
             else:
                 print("Did not received any message after 10 seconds")
     
     def generateFunction (self):        
         for x in range(self.typeFunction):
-            self.indexes.append(random.randint(-1000,1001))
+            self.indexes.append(random.randint(-10,11))
+        print(GeneratorAgent.indexes)
+
+    class ReturnY(CyclicBehaviour):
+        async def run(self):
+            msg = await self.receive(timeout=10) # wait for a message for 10 seconds
+            
+            response = 1
+            entry = 0
+            if msg:
+                entry = int(format(msg.body))
+                for raiz in GeneratorAgent.indexes:
+                    response = response * (entry - raiz)
+                
+                r_msg = Message(to=format(msg.sender))
+                r_msg.set_metadata("performative","inform")
+                r_msg.body = format(response)
+                
+                await self.send(r_msg)
+            else:
+                print("To parado")
 
     async def setup(self):
         print("GeneratorAgent started")
+        #Configura o comportamento que retorna o tipo de função
         b = self.TypeRequest()
         template = Template()
         template.set_metadata("performative", "request")
         self.add_behaviour(b, template)
         
-        #print(self.typeFunction)
+        #Configura o comportamento que retorna o valor de Y
+        rY = self.ReturnY()
+        tY = Template()
+        tY.set_metadata("performative","subscribe")
+        self.add_behaviour(rY, tY)
         
         self.generateFunction()
 
