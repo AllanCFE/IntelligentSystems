@@ -24,13 +24,24 @@ class SolverAgent(Agent):
             await self.send(msg)
             print("Message sent!")
 
-            # stop agent from behaviour
-            await self.agent.stop()
+    class AwaitCalculation (CyclicBehaviour):
+        async def run(self):
+            msg = await self.receive(timeout=5)
+            
+            if msg:
+                print("Retornado: {}".format(msg.body))
+            else:
+                print("Not received response after 5s")
 
     async def setup(self):
         print("SolverAgent started")
-        b = self.InformBehav()
-        self.add_behaviour(b)
+        guessBehaviour = self.AwaitCalculation()
+        template = Template()
+        template.set_metadata("performative", "inform")
+        self.add_behaviour(guessBehaviour, template)
+        
+        requestTypeBehaviour = self.InformBehav()
+        self.add_behaviour(requestTypeBehaviour)
 
 class GeneratorAgent(Agent):
     
@@ -53,9 +64,6 @@ class GeneratorAgent(Agent):
                     print('b')
             else:
                 print("Did not received any message after 10 seconds")
-
-            # stop agent from behaviour
-            #await self.agent.stop()
     
     def generateFunction (self):        
         for x in range(self.typeFunction):
