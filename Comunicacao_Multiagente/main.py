@@ -7,6 +7,8 @@ try:
 except ImportError:
    pass
 
+from math import factorial
+from multiprocessing.forkserver import set_forkserver_preload
 import time
 from xml.dom.minidom import TypeInfo
 from kiwisolver import Solver
@@ -15,12 +17,17 @@ from spade.behaviour import CyclicBehaviour, OneShotBehaviour
 from spade.message import Message
 from spade.template import Template
 import random
+import math
 
 
 class SolverAgent(Agent):
     grauFuncao = 0 # salvar o grau da função que o Gerador retornar
     xEnviado = 0 # salvar o último X enviado (por enquanto não serve pra nada, pode servir pro método de achar a raiz)
     xTestados = [0] # salvar todos os X tentandos (idem acima)
+    variavelA = 0 # responsável por armazenar o valor do primeiro termo da equação
+    variavelB = 0 # resṕonsável por armazenar o valor do segundo termo da equação
+    n_testes = 0 # responsável por armazenar o valor da quantidade de vezes que um valor de x foi testado.
+    yRecebido = 0 # responsável por armazenar o valor de Y recebido pelo calculo no gerador.
     
     #Comportamento que pede o tipo da função ao Gerador e para
     class InformBehav(OneShotBehaviour):
@@ -51,7 +58,7 @@ class SolverAgent(Agent):
             if msg:
                 # Se recebe uma letra, reconhece que é o tipo da função e salva
                 if 'u' == msg.body[len(msg.body)-1]:
-                    SolverAgent.grauFuncao = msg.body[0]
+                    SolverAgent.grauFuncao = int(msg.body[0])
                     print("Grau recebido: {}".format(SolverAgent.grauFuncao))
                 
                 # Se não é o tipo de função, valida o último palpite
@@ -62,6 +69,7 @@ class SolverAgent(Agent):
                         await SolverAgent.stop()
                     
                     print("Y = {}".format(msg.body))
+                    SolverAgent.yRecebido = int(format(msg.body))
                     
                     # Pede um novo X pra função de achar o X
                     novoX = SolverAgent.resolvedor()
@@ -76,6 +84,10 @@ class SolverAgent(Agent):
                     await self.send(msg)
                     print("GUESS sent: {}!".format(msg.body))
                     
+                    SolverAgent.n_testes = SolverAgent.n_testes + 1
+                    time.sleep(1)
+                    
+                    
             else:
                 print("Not received response after 5s")
 
@@ -84,6 +96,47 @@ class SolverAgent(Agent):
         SolverAgent.xTestados.append(SolverAgent.xEnviado)
         
         novoX = 0
+        print(SolverAgent.grauFuncao)
+        
+        if(SolverAgent.grauFuncao == 1):
+            
+            if (SolverAgent.n_testes == 0):
+                return 0
+                
+            if (SolverAgent.n_testes == 1):
+                SolverAgent.variavelB = SolverAgent.yRecebido
+                return 1
+                
+            if (SolverAgent.n_testes == 2):
+                SolverAgent.variavelA = SolverAgent.yRecebido - SolverAgent.variavelB
+                return int(-SolverAgent.variavelB/SolverAgent.variavelA)
+           
+        if(solverAgent.grauFuncao == 2):
+            
+            if (SolverAgent.n_testes == 0):
+                return 0
+                
+            if (SolverAgent.n_testes == 1):
+                SolverAgent.variavelB = - SolverAgent.yRecebido
+                return 1
+                
+            if (SolverAgent.n_testes == 2):
+                SolverAgent.variavelA = SolverAgent.yRecebido + SolverAgent.variavelB
+                return int(math.sqrt(SolverAgent.variavelB/SolverAgent.variavelA))
+        
+        if(solverAgent.grauFuncao == 3):
+            
+            if (SolverAgent.n_testes == 0):
+                return 0
+                
+            if (SolverAgent.n_testes == 1):
+                SolverAgent.variavelB =  -SolverAgent.yRecebido
+                return 1  
+            
+            if (SolverAgent.n_testes == 2):
+                SolverAgent.variavelA = SolverAgent.yRecebido + SolverAgent.variavelB
+                return int((SolverAgent.variavelB/SolverAgent.variavelA)**(1/3) + 1)    
+            
         
         while novoX in SolverAgent.xTestados:
             novoX = random.randint(-1000,1001)
@@ -99,6 +152,7 @@ class SolverAgent(Agent):
         template.set_metadata("performative", "inform")
         self.add_behaviour(guessBehaviour, template)
         
+        
         # Pede o tipo da função
         requestTypeBehaviour = self.InformBehav()
         self.add_behaviour(requestTypeBehaviour)
@@ -109,7 +163,10 @@ class SolverAgent(Agent):
 
 class GeneratorAgent(Agent):
     typeFunction = random.randint(1,3) # Define o tipo de função
-    indexes = [] # Salva as raizes
+    # indexes = [] # Salva as raizes
+    constantA = 0
+    constantB = 0
+    variableX = 0
     
     # Responde o tipo da função
     class TypeRequest(CyclicBehaviour):
@@ -125,10 +182,25 @@ class GeneratorAgent(Agent):
     
     # Gera as raízes da função de forma aleatória
     def generateFunction (self):        
-        for x in range(self.typeFunction):
-            self.indexes.append(random.randint(-1000,1001))
-        print(GeneratorAgent.indexes)
-
+        if(GeneratorAgent.typeFunction == 1):
+            GeneratorAgent.variableX = random.randint(-1000, 1000)
+            GeneratorAgent.constantA = random.randint(-100,100)
+            GeneratorAgent.constantB = -1*(GeneratorAgent.constantA*GeneratorAgent.variableX)
+            print("Equação gerada = ", GeneratorAgent.constantA, "x", GeneratorAgent.constantB)
+            
+        if(GeneratorAgent.typeFunction == 2):
+            GeneratorAgent.variableX = random.randint(-1000,1000)
+            GeneratorAgent.constantA = random.randint(-10, 10)
+            GeneratorAgent.constantB = -1*(GeneratorAgent.constantA*GeneratorAgent.variableX*GeneratorAgent.variableX)
+            print("Equação gerada = ", GeneratorAgent.constantA, "x²", GeneratorAgent.constantB)
+            
+        if(GeneratorAgent.typeFunction == 3):
+            GeneratorAgent.variableX = random.randint(0, 100)
+            GeneratorAgent.constantA = random.randint(-10,10)
+            GeneratorAgent.constantB = -1*(GeneratorAgent.constantA*GeneratorAgent.variableX*GeneratorAgent.variableX*GeneratorAgent.variableX)
+            
+            print("Equação gerada = ", GeneratorAgent.constantA,"x³", GeneratorAgent.constantB)
+            
     # Retorna ao Solver o resultado de Y com X recebido aplicado
     class ReturnY(CyclicBehaviour):
         async def run(self):
@@ -142,10 +214,20 @@ class GeneratorAgent(Agent):
                 entry = int(format(msg.body))
                 
                 # Calcula Y
-                for raiz in GeneratorAgent.indexes:
-                    response = response * (entry - raiz)
+                # for raiz in GeneratorAgent.indexes:
+                #     response = response * (entry - raiz)
                 
-                # Retorna Y ao Solver
+                # Calcula Y com base no grau da função
+                if(GeneratorAgent.typeFunction==1):
+                    response = GeneratorAgent.constantA*entry + GeneratorAgent.constantB
+                
+                if(GeneratorAgent.typeFunction==2):
+                    response = GeneratorAgent.constantA*entry*entry + GeneratorAgent.constantB
+                
+                if(GeneratorAgent.typeFunction==3):
+                    response = GeneratorAgent.constantA*entry*entry*entry + GeneratorAgent.constantB
+                
+                # Retorna ao Solver
                 r_msg = Message(to=format(msg.sender))
                 r_msg.set_metadata("performative","inform")
                 r_msg.body = format(response)
