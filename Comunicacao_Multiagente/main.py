@@ -22,8 +22,8 @@ import math
 
 class SolverAgent(Agent):
     grauFuncao = 0 # salvar o grau da função que o Gerador retornar
-    xEnviado = 0 # salvar o último X enviado (por enquanto não serve pra nada, pode servir pro método de achar a raiz)
-    xTestados = [0] # salvar todos os X tentandos (idem acima)
+    xEnviado = 0 # salvar o último X enviado 
+    xTestados = [0] # salvar todos os X tentandos
     variavelA = 0 # responsável por armazenar o valor do primeiro termo da equação
     variavelB = 0 # resṕonsável por armazenar o valor do segundo termo da equação
     n_testes = 0 # responsável por armazenar o valor da quantidade de vezes que um valor de x foi testado.
